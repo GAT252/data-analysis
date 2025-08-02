@@ -1,0 +1,25 @@
+FROM jupyter/scipy-notebook:65761486d5d3
+
+# 必要なパッケージインストール（root権限）
+USER root
+RUN apt-get update && apt-get install -y \
+    python3-dev \
+    libpq-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Pythonパッケージのインストール（できれば1ステップで）
+RUN pip install --upgrade pip && \
+    pip install \
+        "ipython-sql" \
+        "sqlalchemy==1.4.46" \
+        "psycopg2-binary"
+
+# psycopg2 → binary版の方がビルド不要でトラブルが少ない
+
+# 作業ディレクトリ
+WORKDIR /opt/analysis
+
+# Jupyter Notebook の起動
+CMD sh -c "jupyter notebook --allow-root --NotebookApp.token='${NOTEBOOK_PASSWORD}' --ip=0.0.0.0 --no-browser --NotebookApp.notebook_dir=/opt/analysis"
+
